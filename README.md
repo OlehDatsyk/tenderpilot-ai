@@ -136,7 +136,7 @@ AI providers are mocked in all automated tests — no paid API calls are made.
 
 ## Deployment
 
-The repository includes a Render Blueprint (`render.yaml`) that creates `tenderpilot-ai-db` (PostgreSQL), `tenderpilot-ai-api` (FastAPI) and `tenderpilot-ai-frontend` (static site). Uploaded documents are stored in PostgreSQL, so nothing depends on Render's ephemeral disk. Step-by-step instructions, the environment-variable checklist and post-deploy checks are in [INSTRUCTION.md](INSTRUCTION.md#deploying-to-render).
+The repository includes a Render Blueprint (`render.yaml`) that creates `tenderpilot-ai-api` (FastAPI) and `tenderpilot-ai-frontend` (static site) on free plans, using an external PostgreSQL database such as a free Neon database (Render allows one free database per workspace). Uploaded documents are stored in PostgreSQL, so nothing depends on Render's ephemeral disk. Step-by-step instructions, the environment-variable checklist and post-deploy checks are in [INSTRUCTION.md](INSTRUCTION.md#deploying-to-render).
 
 ## Security
 

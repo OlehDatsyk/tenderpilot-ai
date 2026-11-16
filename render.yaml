@@ -1,21 +1,25 @@
-# Render Blueprint for TenderPilot AI: PostgreSQL + FastAPI web service + static React frontend.
+# Render Blueprint for TenderPilot AI: FastAPI web service + static React frontend.
+# PostgreSQL is EXTERNAL (e.g. a free Neon database): Render allows only one free Postgres per workspace.
+# You paste its connection string into DATABASE_URL when Render asks (it is never stored in this file).
 # Uploaded documents are stored in PostgreSQL (STORAGE_BACKEND=database), so nothing depends on
 # Render's ephemeral filesystem. See INSTRUCTION.md -> "Deploying to Render".
-# Plans: "free" keeps evaluation costs at zero but free databases expire and free services sleep -
-# switch to paid plans for real use.
-
-databases:
-  - name: tenderpilot-ai-db
-    databaseName: tenderpilot
-    user: tenderpilot
-    plan: free
-    ipAllowList: [] # only reachable from services inside this Render account
+#
+# To use a Render-managed database instead, add:
+#   databases:
+#     - name: tenderpilot-ai-db
+#       databaseName: tenderpilot
+#       plan: basic-256mb        # or free, if your workspace's free Postgres slot is unused
+# and replace the DATABASE_URL entry below with:
+#   fromDatabase: { name: tenderpilot-ai-db, property: connectionString }
+#
+# Free web services sleep after ~15 minutes idle (first request afterwards is slow).
 
 services:
   - type: web
     name: tenderpilot-ai-api
     runtime: python
     rootDir: backend
+    region: frankfurt
     plan: free
     buildCommand: pip install -r requirements.txt
     # Migrations are additive/non-destructive and run on every start before the server binds.
@@ -28,9 +32,7 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: tenderpilot-ai-db
-          property: connectionString
+        sync: false # secret: paste your PostgreSQL connection string (e.g. Neon) in the Render dashboard
       - key: SECRET_KEY
         generateValue: true
       - key: ENCRYPTION_KEY

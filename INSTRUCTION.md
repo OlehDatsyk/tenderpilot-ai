@@ -125,18 +125,20 @@ With `DOCS_ENABLED=true`: Swagger UI at `/api/docs`, ReDoc at `/api/redoc`, Open
 
 | Service | Type | Name |
 | --- | --- | --- |
-| PostgreSQL | Render PostgreSQL | `tenderpilot-ai-db` |
-| API | Web service (Python) | `tenderpilot-ai-api` |
-| Frontend | Static site | `tenderpilot-ai-frontend` |
+| PostgreSQL | External PostgreSQL (e.g. Neon free plan) | — |
+| API | Render web service (Python, Frankfurt, free) | `tenderpilot-ai-api` |
+| Frontend | Render static site (free) | `tenderpilot-ai-frontend` |
+
+The Blueprint does **not** create a Render database, because Render allows only one free PostgreSQL database per workspace. Any PostgreSQL 14+ works; a free [Neon](https://neon.tech) database is the zero-cost option. (`render.yaml` explains how to switch to a Render-managed database.)
 
 Uploaded documents are stored in PostgreSQL (`STORAGE_BACKEND=database`), so no persistent disk or external object storage is required and nothing is lost when Render restarts the API on its ephemeral filesystem. Database size therefore grows with uploads — choose a database plan with enough storage.
 
 ### Option A — Blueprint (recommended)
 
-1. Push this repository to GitHub.
+1. **Create the database.** In Neon: create a project (region close to Frankfurt, e.g. AWS Europe Central), open **Connect**, turn **Connection pooling off** and copy the `postgresql://…?sslmode=require…` connection string. Keep it private.
 2. In the Render Dashboard choose **New → Blueprint**, connect the GitHub repository and select the `main` branch. Render reads `render.yaml`.
-3. When prompted for unsynced variables, leave the AI keys empty (or enter one) — `AI_PROVIDER` defaults to `none`.
-4. Click **Apply**. Render creates the database first, then the API and the static site.
+3. When prompted for unsynced variables, paste the connection string into **`DATABASE_URL`**. Leave the AI keys empty (or enter one) — `AI_PROVIDER` defaults to `none`.
+4. Click **Apply**. Render creates the API and the static site; the API runs the migrations against your database on start.
 5. After the first deploy, check the actual service URLs. If Render assigned different subdomains than `tenderpilot-ai-api.onrender.com` / `tenderpilot-ai-frontend.onrender.com`, update:
    - API → Environment: `CORS_ORIGINS` and `FRONTEND_URL` = the frontend URL.
    - Frontend → Environment: `VITE_API_URL` = the API URL, then **Manual Deploy → Clear build cache & deploy** (Vite embeds it at build time).
