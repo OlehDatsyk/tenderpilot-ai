@@ -92,7 +92,7 @@ The backend reads `./.env`, then `./backend/.env`, then real environment variabl
 | `DOCS_ENABLED` | no | no | `true` | Serve `/api/docs`, `/api/redoc`, `/api/openapi.json`. |
 | `DB_POOL_SIZE` / `DB_MAX_OVERFLOW` | no | no | `5` / `5` | SQLAlchemy pool sizing. Keep small on small database plans. |
 | `LOG_LEVEL` | no | no | `INFO` | Python logging level. |
-| `VITE_API_URL` (frontend) | prod: yes | no (public) | blank | Backend URL embedded at build time. A bare host is accepted (`https://` is added). |
+| `VITE_API_URL` (frontend) | prod: yes | no (public) | blank | Public backend URL embedded at build time, e.g. `https://tenderpilot-ai-api.onrender.com` (not Render's internal host name). |
 
 ## 5. AI providers
 

@@ -79,11 +79,10 @@ services:
     staticPublishPath: dist
     pullRequestPreviewsEnabled: false
     envVars:
+      # Public API URL embedded at build time. (fromService "host" is Render's INTERNAL hostname,
+      # which browsers cannot reach - so the public URL is set explicitly.)
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: tenderpilot-ai-api
-          property: host
+        value: https://tenderpilot-ai-api.onrender.com
     routes:
       - type: rewrite
         source: /*
