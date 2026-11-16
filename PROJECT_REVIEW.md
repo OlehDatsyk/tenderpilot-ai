@@ -82,5 +82,9 @@ Tracked files were scanned for API-key prefixes (`sk-`, `sk-ant-`, `AKIA`, `gho_
 
 ## 8. Deployment readiness
 
-- **GitHub publication:** ready — tests pass, no secrets, generated files and local data ignored.
-- **Render:** configuration ready (`render.yaml`, health checks, persistent storage via PostgreSQL, production guards). Deployment requires the repository owner to connect Render to GitHub and apply the Blueprint (see [INSTRUCTION.md](INSTRUCTION.md#deploying-to-render)); it has **not** been deployed or verified live as part of this audit.
+- **GitHub publication:** published at https://github.com/OlehDatsyk/tenderpilot-ai (public); CI passes.
+- **Render:** **deployed and verified** as a free *demo* deployment (16 Nov 2026):
+  - Frontend https://tenderpilot-ai-frontend.onrender.com, API https://tenderpilot-ai-api.onrender.com (Frankfurt), docs at `/api/docs`.
+  - Verified live: `/health` and `/health/ready` OK; CORS allows only the frontend origin; SPA deep links and security headers served; frontend bundle targets the public API URL; the browser loads the app without console errors; a full workflow (register → tender → upload → extraction → demo analysis → compliance → bid decision → proposal → assistant → task → PDF/DOCX/CSV exports → dashboard/analytics) succeeded against the live API with a throwaway test account.
+  - **Not persistent:** `EPHEMERAL_DEMO=true` with SQLite on Render's ephemeral disk — data is deleted on restart, redeploy and idle spin-down. A permanent banner says so. For persistent data, set `DATABASE_URL` to PostgreSQL (e.g. Neon) and remove `EPHEMERAL_DEMO`.
+  - Deployment fixes found during verification: an external database rejected the first pasted credentials (switched to demo mode at the owner's request), and Render's `fromService … host` gave the frontend an internal, unreachable hostname — replaced with the explicit public API URL.

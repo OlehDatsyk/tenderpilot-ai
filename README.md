@@ -5,6 +5,16 @@
 [![CI](https://github.com/OlehDatsyk/tenderpilot-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/OlehDatsyk/tenderpilot-ai/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+## 🔗 Live demo
+
+| | URL |
+| --- | --- |
+| **Application** | https://tenderpilot-ai-frontend.onrender.com |
+| API | https://tenderpilot-ai-api.onrender.com |
+| API documentation | https://tenderpilot-ai-api.onrender.com/api/docs |
+
+> **This is a free demo deployment.** It has no database server: data is temporary and is deleted whenever the server restarts or sleeps (after ~15 minutes without traffic — the first visit afterwards takes about a minute to wake up). AI features run in clearly labelled demo mode. Please don't upload confidential documents. See [INSTRUCTION.md](INSTRUCTION.md#deploying-to-render) to deploy with a persistent PostgreSQL database.
+
 TenderPilot AI is a full-stack SaaS application for teams that respond to public and private tenders, RFPs, RFQs, RFIs, procurement opportunities and supplier questionnaires. It extracts requirements from tender documents with **verifiable source references**, tracks compliance, supports bid/no-bid decisions, drafts proposals **without inventing company facts**, and keeps the whole team's work in one place.
 
 > AI output is always labelled. Extracted items show whether their source quote was verified in the uploaded document, demo-mode output is marked as a rule-based heuristic, and generated proposal text uses `[COMPANY INFORMATION REQUIRED]` placeholders wherever verified company information is missing.
