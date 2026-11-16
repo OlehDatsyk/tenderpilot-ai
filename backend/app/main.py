@@ -98,7 +98,8 @@ def create_app() -> FastAPI:
     @app.get("/health", tags=["health"])
     @app.get("/api/v1/health", tags=["health"], include_in_schema=False)
     def health() -> dict:
-        return {"status": "ok", "version": __version__}
+        # "ephemeral_data" lets the frontend warn users that this deployment does not keep data.
+        return {"status": "ok", "version": __version__, "ephemeral_data": settings.ephemeral_demo}
 
     @app.get("/health/ready", tags=["health"])
     @app.get("/api/v1/health/ready", tags=["health"], include_in_schema=False)

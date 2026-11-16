@@ -19,6 +19,7 @@ import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from "react
 import { useAuth } from "@/lib/auth";
 import { useAIStatus } from "@/lib/hooks";
 import { cn } from "@/lib/utils";
+import { DemoDataBanner } from "./DemoDataBanner";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { Spinner } from "./ui";
 
@@ -169,6 +170,7 @@ export function AppShell() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col lg:pl-60">
+        <DemoDataBanner />
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-line bg-white/90 px-4 backdrop-blur sm:px-6">
           <button className="rounded-md p-2 text-muted hover:bg-slate-100 lg:hidden" onClick={() => setMobileOpen(true)} aria-label="Open navigation">
             <Menu className="h-5 w-5" />

@@ -39,3 +39,12 @@ def test_production_rejects_unsafe_settings(override):
 def test_development_generates_ephemeral_secret():
     s = Settings(environment="development", secret_key="", _env_file=None)
     assert len(s.secret_key) >= 32
+
+
+def test_production_sqlite_only_with_explicit_ephemeral_demo():
+    s = Settings(**{**GOOD, "database_url": "sqlite:///./demo.db", "ephemeral_demo": True})
+    assert s.database_url.startswith("sqlite") and s.ephemeral_demo
+
+
+def test_health_reports_ephemeral_flag(client):
+    assert client.get("/health").json()["ephemeral_data"] is False

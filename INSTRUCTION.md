@@ -87,6 +87,7 @@ The backend reads `./.env`, then `./backend/.env`, then real environment variabl
 | `STORAGE_BACKEND` | no | no | `database` | `database` = files in PostgreSQL (persistent). `local` requires a persistent disk in production. |
 | `LOCAL_STORAGE_DIR` | no | no | `./storage` | Used only with `STORAGE_BACKEND=local`. |
 | `LOCAL_STORAGE_IS_PERSISTENT` | no | no | `false` | Must be `true` to use `local` storage in production (e.g. with a Render disk). |
+| `EPHEMERAL_DEMO` | no | no | `false` | `true` allows SQLite in production for a database-less **demo** deployment. Data is lost on every restart/redeploy/idle spin-down; the UI shows a permanent warning banner. |
 | `MAX_UPLOAD_MB` | no | no | `20` | Upload size limit. |
 | `DOCS_ENABLED` | no | no | `true` | Serve `/api/docs`, `/api/redoc`, `/api/openapi.json`. |
 | `DB_POOL_SIZE` / `DB_MAX_OVERFLOW` | no | no | `5` / `5` | SQLAlchemy pool sizing. Keep small on small database plans. |
@@ -133,7 +134,11 @@ The Blueprint does **not** create a Render database, because Render allows only 
 
 Uploaded documents are stored in PostgreSQL (`STORAGE_BACKEND=database`), so no persistent disk or external object storage is required and nothing is lost when Render restarts the API on its ephemeral filesystem. Database size therefore grows with uploads — choose a database plan with enough storage.
 
-### Option A — Blueprint (recommended)
+### Current configuration: free demo deployment (no database server)
+
+`render.yaml` currently deploys a **demo** with `EPHEMERAL_DEMO=true`, `DATABASE_URL=sqlite:///./tenderpilot-demo.db` and `AI_PROVIDER=demo`. Everything runs on free plans and no database service is needed, but Render's free instances have an ephemeral disk: **all data is deleted whenever the API restarts, redeploys or sleeps after ~15 minutes idle.** A banner on every page says so. To keep data, follow Option A below (external PostgreSQL) and remove `EPHEMERAL_DEMO`.
+
+### Option A — Blueprint with persistent PostgreSQL (recommended for real use)
 
 1. **Create the database.** In Neon: create a project (region close to Frankfurt, e.g. AWS Europe Central), open **Connect**, turn **Connection pooling off** and copy the `postgresql://…?sslmode=require…` connection string. Keep it private.
 2. In the Render Dashboard choose **New → Blueprint**, connect the GitHub repository and select the `main` branch. Render reads `render.yaml`.

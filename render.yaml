@@ -1,10 +1,13 @@
-# Render Blueprint for TenderPilot AI: FastAPI web service + static React frontend.
-# PostgreSQL is EXTERNAL (e.g. a free Neon database): Render allows only one free Postgres per workspace.
-# You paste its connection string into DATABASE_URL when Render asks (it is never stored in this file).
-# Uploaded documents are stored in PostgreSQL (STORAGE_BACKEND=database), so nothing depends on
-# Render's ephemeral filesystem. See INSTRUCTION.md -> "Deploying to Render".
+# Render Blueprint for TenderPilot AI: FastAPI web service + static React frontend, all on free plans.
 #
-# To use a Render-managed database instead, add:
+# DEMO MODE (current): no database server. EPHEMERAL_DEMO=true lets the API keep its data in a SQLite file on
+# the free instance's disk, which Render WIPES on every restart, redeploy and idle spin-down (~15 min).
+# The app shows a permanent "data is temporary" banner. AI runs in labelled demo mode.
+#
+# For persistent data, point DATABASE_URL at PostgreSQL and remove EPHEMERAL_DEMO:
+#   - external (e.g. a free Neon database): DATABASE_URL -> `sync: false`, then paste the connection string
+#     in the Render dashboard (never commit it here); or
+#   - Render-managed: add
 #   databases:
 #     - name: tenderpilot-ai-db
 #       databaseName: tenderpilot
@@ -32,7 +35,9 @@ services:
       - key: ENVIRONMENT
         value: production
       - key: DATABASE_URL
-        sync: false # secret: paste your PostgreSQL connection string (e.g. Neon) in the Render dashboard
+        value: sqlite:///./tenderpilot-demo.db # temporary demo data - see the header comment
+      - key: EPHEMERAL_DEMO
+        value: "true"
       - key: SECRET_KEY
         generateValue: true
       - key: ENCRYPTION_KEY
@@ -52,7 +57,7 @@ services:
       - key: REGISTRATION_ENABLED
         value: "true"
       - key: AI_PROVIDER
-        value: none # set to anthropic/openai/gemini (with a key) or demo
+        value: demo # labelled rule-based demo; set anthropic/openai/gemini (with a key) for real AI
       - key: AI_MODEL
         sync: false
       - key: ANTHROPIC_API_KEY

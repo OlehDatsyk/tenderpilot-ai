@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
+import { DemoDataBanner } from "@/components/DemoDataBanner";
 import { Logo } from "@/components/layout";
 import { Button, Field, Input, Notice } from "@/components/ui";
 import { api } from "@/lib/api";
@@ -12,7 +13,9 @@ import { useAuth } from "@/lib/auth";
 
 function AuthLayout({ title, subtitle, children }: { title: string; subtitle: ReactNode; children: ReactNode }) {
   return (
-    <div className="grid min-h-full lg:grid-cols-[1fr_1.1fr]">
+    <div className="flex min-h-full flex-col">
+    <DemoDataBanner />
+    <div className="grid flex-1 lg:grid-cols-[1fr_1.1fr]">
       <div className="hidden flex-col justify-between bg-navy-900 p-10 text-white lg:flex">
         <Logo />
         <div className="max-w-md">
@@ -43,6 +46,7 @@ function AuthLayout({ title, subtitle, children }: { title: string; subtitle: Re
           <div className="mt-6">{children}</div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

@@ -10,6 +10,8 @@ import { mockFetch, renderWithProviders } from "./utils";
 
 afterEach(() => vi.unstubAllGlobals());
 
+const nonHealthCalls = (fn: ReturnType<typeof vi.fn>) => fn.mock.calls.filter((c) => !String(c[0]).includes("/health"));
+
 const session = { access_token: "a1", refresh_token: "r1", expires_in: 900 };
 
 describe("api client", () => {
@@ -76,7 +78,7 @@ describe("authentication pages", () => {
     await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
     expect(await screen.findByText("Enter a valid email address")).toBeInTheDocument();
     expect(screen.getByText("Enter your password")).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(nonHealthCalls(fetchMock)).toHaveLength(0);
   });
 
   it("shows the server error on failed login and stores nothing", async () => {
@@ -111,7 +113,7 @@ describe("authentication pages", () => {
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText("Use at least 10 characters")).toBeInTheDocument();
     expect(screen.getByText("Passwords do not match")).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(nonHealthCalls(fetchMock)).toHaveLength(0);
   });
 });
 
@@ -125,7 +127,7 @@ describe("tender form", () => {
     await userEvent.click(screen.getByRole("button", { name: "Create tender" }));
     expect(await screen.findByText("Title is required")).toBeInTheDocument();
     expect(screen.getByText("3-letter ISO code, e.g. EUR")).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(nonHealthCalls(fetchMock)).toHaveLength(0);
   });
 
   it("submits a new tender with normalised values", async () => {
@@ -193,5 +195,20 @@ describe("compliance matrix", () => {
     expect(within(row).getByText(/itt\.pdf, p\. 4/)).toBeInTheDocument();
     await userEvent.selectOptions(within(row).getByLabelText("Response status"), "compliant");
     await waitFor(() => expect(patches).toEqual([{ response_status: "compliant" }]));
+  });
+});
+
+describe("demo data banner", () => {
+  it("warns on every auth page when the server keeps no persistent data", async () => {
+    mockFetch({ "GET /api/v1/health": { body: { status: "ok", version: "1", ephemeral_data: true } } });
+    renderWithProviders(<LoginPage />, { route: "/login" });
+    expect(await screen.findByText(/data is temporary/i)).toBeInTheDocument();
+  });
+
+  it("stays hidden on normal deployments", async () => {
+    const fetchMock = mockFetch({ "GET /api/v1/health": { body: { status: "ok", version: "1", ephemeral_data: false } } });
+    renderWithProviders(<LoginPage />, { route: "/login" });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    expect(screen.queryByText(/data is temporary/i)).not.toBeInTheDocument();
   });
 });

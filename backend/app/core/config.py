@@ -79,6 +79,10 @@ class Settings(BaseSettings):
     docs_enabled: bool = True
     trusted_proxy_headers: bool = False
 
+    # Explicit opt-in for a database-less demo deployment: SQLite on the server's (possibly ephemeral) disk.
+    # Data may be lost on every restart; the API reports this and the frontend shows a permanent banner.
+    ephemeral_demo: bool = False
+
     @field_validator("database_url")
     @classmethod
     def _normalise_db_url(cls, value: str) -> str:
@@ -94,8 +98,11 @@ class Settings(BaseSettings):
         if self.environment == "production":
             if len(self.secret_key) < 32:
                 raise ValueError("SECRET_KEY must be set to at least 32 random characters in production.")
-            if self.database_url.startswith("sqlite"):
-                raise ValueError("SQLite is not supported in production; set DATABASE_URL to PostgreSQL.")
+            if self.database_url.startswith("sqlite") and not self.ephemeral_demo:
+                raise ValueError(
+                    "SQLite is not supported in production; set DATABASE_URL to PostgreSQL "
+                    "(or set EPHEMERAL_DEMO=true for a demo whose data may be lost on restart)."
+                )
             if self.storage_backend == "local" and not self.local_storage_is_persistent:
                 raise ValueError(
                     "STORAGE_BACKEND=local requires a persistent disk in production. "
