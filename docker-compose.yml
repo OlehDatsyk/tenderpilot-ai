@@ -1,0 +1,57 @@
+# Local development services.
+#   docker compose up -d db                 -> PostgreSQL only (used by "Start App" scripts)
+#   docker compose --profile full up --build -> PostgreSQL + API + frontend in containers
+# Credentials below are for LOCAL DEVELOPMENT ONLY and are bound to 127.0.0.1.
+name: tenderpilot-ai
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tenderpilot
+      POSTGRES_PASSWORD: tenderpilot
+      POSTGRES_DB: tenderpilot
+    ports:
+      - "127.0.0.1:5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tenderpilot -d tenderpilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    profiles: ["full"]
+    build: ./backend
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql+psycopg://tenderpilot:tenderpilot@db:5432/tenderpilot
+      CORS_ORIGINS: http://localhost:8080
+      AI_PROVIDER: ${AI_PROVIDER:-demo}
+      SECRET_KEY: ${SECRET_KEY:-local-dev-only-change-me-0123456789abcdef}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  web:
+    profiles: ["full"]
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
+    depends_on:
+      - api
+    ports:
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  pgdata:

@@ -1,0 +1,99 @@
+# Render Blueprint for TenderPilot AI: PostgreSQL + FastAPI web service + static React frontend.
+# Uploaded documents are stored in PostgreSQL (STORAGE_BACKEND=database), so nothing depends on
+# Render's ephemeral filesystem. See INSTRUCTION.md -> "Deploying to Render".
+# Plans: "free" keeps evaluation costs at zero but free databases expire and free services sleep -
+# switch to paid plans for real use.
+
+databases:
+  - name: tenderpilot-ai-db
+    databaseName: tenderpilot
+    user: tenderpilot
+    plan: free
+    ipAllowList: [] # only reachable from services inside this Render account
+
+services:
+  - type: web
+    name: tenderpilot-ai-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    # Migrations are additive/non-destructive and run on every start before the server binds.
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health/ready
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tenderpilot-ai-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ENCRYPTION_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://tenderpilot-ai-frontend.onrender.com
+      - key: FRONTEND_URL
+        value: https://tenderpilot-ai-frontend.onrender.com
+      - key: TRUSTED_PROXY_HEADERS
+        value: "true"
+      - key: STORAGE_BACKEND
+        value: database
+      - key: MAX_UPLOAD_MB
+        value: "20"
+      - key: DOCS_ENABLED
+        value: "true"
+      - key: REGISTRATION_ENABLED
+        value: "true"
+      - key: AI_PROVIDER
+        value: none # set to anthropic/openai/gemini (with a key) or demo
+      - key: AI_MODEL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DB_POOL_SIZE
+        value: "3"
+      - key: DB_MAX_OVERFLOW
+        value: "2"
+
+  - type: web
+    name: tenderpilot-ai-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci --no-audit --no-fund && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: tenderpilot-ai-api
+          property: host
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: Content-Security-Policy
+        value: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://*.onrender.com; font-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
